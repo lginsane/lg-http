@@ -1,6 +1,6 @@
-import { defaultOptions } from './type'
+import { defaultOptions } from '../types/index'
 import axios from 'axios'
-class Http {
+export default class Http {
     constructor(option) {
         this.instance = null
         this.option = {
@@ -22,6 +22,12 @@ class Http {
 
     }
     catch () {
+        
+    }
+    get () {
+
+    }
+    post () {
         
     }
 }
