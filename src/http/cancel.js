@@ -1,7 +1,7 @@
-/* 处理取消请求 */
+/* 处理取消重复请求 */
 import { CancelToken } from 'axios'
 
-export const cancelQueuet = {
+export const cancelQueue = {
     list: {},
     CancelToken: CancelToken,
     add(name, cancel) {

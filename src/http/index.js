@@ -15,4 +15,13 @@ class Http {
             baseURL, timeout, headers
         })
     }
+    request() {
+        
+    }
+    then () {
+
+    }
+    catch () {
+        
+    }
 }

@@ -1,5 +1,5 @@
-/* 处理接口请求参数，用于token刷新后重新发起请求 */
-export const configsQueuet = {
+/* 刷新 token */
+export const refreshQueue = {
     list: {},
     add(config) {
         this.list[config.url] = config
