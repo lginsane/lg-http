@@ -39,7 +39,7 @@ export default class Http {
     Loading.init(this.option);
     Toast.init(this.option);
     CancelQueue.init(this.option);
-    RefreshQueue.init(this.option);
+    // RefreshQueue.init(this.option);
   }
 
   request(method, url, data, attaches, axiosConfig) {
@@ -57,7 +57,7 @@ export default class Http {
 
     // repeated requests
     if (_attaches.isOptimization) {
-      config.cancelToken = new CancelQueue.CancelToken(function executor(c) {
+      _config.cancelToken = new CancelQueue.CancelToken(function executor(c) {
         CancelQueue.add(path, c, attaches);
       });
     }
@@ -78,10 +78,12 @@ export default class Http {
       successRequestAssert,
       requestAssert,
     } = this.option;
-    const _requestAssert = requestAssert || this.option.requestAssert
+
+    const _requestAssert = (attaches && attaches.requestAssert) || requestAssert
+    const _successRequestAssert = (attaches && attaches.successRequestAssert) || successRequestAssert
 
     // close loading
-    Loading.close(config.url, attaches);
+    Loading.close(attaches);
       
     const finalResponse = {
       ...result,
@@ -93,9 +95,9 @@ export default class Http {
 
     // success
     if (
-      successRequestAssert &&
-      typeof successRequestAssert === "function" &&
-      successRequestAssert(result)
+      _successRequestAssert &&
+      typeof _successRequestAssert === "function" &&
+      _successRequestAssert(result)
     ) {
       Toast.success(attaches)
       return Promise.resolve(finalResponse)
@@ -140,10 +142,10 @@ export default class Http {
   post(url, data, attaches, axiosConfig) {
     return this.request("post", url, data, attaches, axiosConfig)
       .then((response) => {
-        return this.then(response, _attaches);
+        return this.commonThen(response, attaches);
       })
       .catch((error) => {
-        return this.catch(error, _attaches);
+        return this.commonCatch(error, attaches);
       });
   }
 }
