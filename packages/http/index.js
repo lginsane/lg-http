@@ -5,9 +5,10 @@ import Loading from "./loading";
 import Toast from "./toast";
 import { defaultOptions } from "../types/index";
 import { mergeConfig } from "../utils/index";
-import { isFunction } from '../utils/is'
+import { isFunction, isObject } from '../utils/is'
 
 export default class Http {
+
   constructor(option) {
     this.instance = null;
     this.option = {
@@ -16,8 +17,20 @@ export default class Http {
     };
     this.init();
   }
+
   init() {
     const { baseURL, timeout, headers } = this.option;
+    if (headers && isObject(headers)) {
+      for (const key in headers) {
+        if (Object.hasOwnProperty.call(headers, key)) {
+          if (isFunction(headers[key])) {
+            headers[key] = headers[key]()
+          }
+        }
+      }
+    } else {
+      throw new Error('headers 格式不正确')
+    }
     this.instance = axios.create({
       baseURL,
       timeout,
@@ -28,9 +41,11 @@ export default class Http {
     CancelQueue.init(this.option);
     RefreshQueue.init(this.option);
   }
+
   request(method, url, data, attaches, axiosConfig) {
     const isBodyData = method.toLowerCase() === "post";
     const path = url;
+
     // attaches config
     const _attaches = {
       ...this.option,
@@ -41,15 +56,12 @@ export default class Http {
     const _config = mergeConfig(isBodyData, data, axiosConfig);
 
     // repeated requests
-    if (_attaches.isOptimization || _attaches.isRefreshToken) {
+    if (_attaches.isOptimization) {
       config.cancelToken = new CancelQueue.CancelToken(function executor(c) {
-        CancelQueue.add(path, c);
+        CancelQueue.add(path, c, attaches);
       });
     }
-    
-    // refresh token
-    RefreshQueue.add(path, { method, url, data, attaches, axiosConfig });
-
+  
     // open loading
     Loading.open(attaches);
 
@@ -59,87 +71,79 @@ export default class Http {
       isBodyData ? { ..._config, data: undefined } : undefined
     );
   }
-  async commonThen(response, attaches) {
-    const { config, data: result, status } = response;
+
+  commonThen(response, attaches) {
+    const { config, data: result } = response;
     const {
       successRequestAssert,
-      isRefreshToken,
-      refreshRequestAssert,
       requestAssert,
-    } = attaches;
+    } = this.option;
     const _requestAssert = requestAssert || this.option.requestAssert
 
     // close loading
     Loading.close(config.url, attaches);
       
-    // refresh token
-    if (isRefreshToken && refreshRequestAssert &&
-      typeof refreshRequestAssert === "function" &&
-      refreshRequestAssert(result)
-    ) {
-      CancelQueue.clear()
-      try {
-        // Check whether the refresh is successful.
-        const isRefreshSuccess = await RefreshQueue.refreshToken()
-        if (isRefreshSuccess) {
-          RefreshQueue.requestAll()
-        }
-      } catch (error) {
-        return Promise.reject(error)
-      }
-      return
-    } else {
-      const finalResponse = {
-        ...result,
-        attaches
-      }
-      // repeated requests
-      CancelQueue.remove(config.url, attaches);
-
-      // success
-      if (
-        successRequestAssert &&
-        typeof successRequestAssert === "function" &&
-        successRequestAssert(result)
-      ) {
-        Toast.success(attaches)
-        return Promise.resolve(finalResponse)
-      }
-      if (_requestAssert && isFunction(_requestAssert)) {
-        if (isFunction(_requestAssert)) {
-          _requestAssert(finalResponse)
-        }
-      }
-      Toast.error(attaches)
-      return Promise.reject(finalResponse)
+    const finalResponse = {
+      ...result,
+      attaches
     }
+
+    // repeated requests
+    CancelQueue.cancel(config.url, attaches);
+
+    // success
+    if (
+      successRequestAssert &&
+      typeof successRequestAssert === "function" &&
+      successRequestAssert(result)
+    ) {
+      Toast.success(attaches)
+      return Promise.resolve(finalResponse)
+    }
+
+    if (_requestAssert && isFunction(_requestAssert)) {
+      if (isFunction(_requestAssert)) {
+        _requestAssert(finalResponse)
+      }
+    }
+
+    return Promise.reject(finalResponse)
   }
+
   commonCatch(error, attaches) {
     if (axios.isCancel(error)) {
-      console.log('Request canceled')
-      return Promise.reject(error)
+      return new Promise(() => {})
     }
-
+    const isResponseReject = error.success !== undefined
+    const finalError = isResponseReject ? error : {
+      attaches,
+      error,
+      message: error.message || error.msg,
+      success: false,
+      code: error.code
+    }
+    Toast.error(finalError)
     Loading.close(attaches);
+    return Promise.reject(finalError)
   }
 
   get(url, data, attaches, axiosConfig) {
     return this.request("get", url, data, attaches, axiosConfig)
       .then((response) => {
-        this.commonThen(response, attaches);
+        return this.commonThen(response, attaches);
       })
       .catch((error) => {
-        this.commonCatch(error, attaches);
+        return this.commonCatch(error, attaches);
       });
   }
 
   post(url, data, attaches, axiosConfig) {
     return this.request("post", url, data, attaches, axiosConfig)
       .then((response) => {
-        this.then(response, _attaches);
+        return this.then(response, _attaches);
       })
       .catch((error) => {
-        this.catch(error, _attaches);
+        return this.catch(error, _attaches);
       });
   }
 }
