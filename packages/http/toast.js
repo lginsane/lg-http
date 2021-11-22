@@ -13,7 +13,10 @@ const Toast = {
         cb && cb(msg)
     },
     getShowToast(attaches) {
-        return this._showToast || (attaches && attaches.showToast)
+        if (attaches && attaches.showToast !== undefined) {
+            return attaches.showToast
+        }
+        return this._showToast
     },
     success(attaches) {
         if (!this.getShowToast(attaches)) return

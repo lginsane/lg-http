@@ -9,9 +9,12 @@ const cancelQueue = {
         this._isOptimization = isOptimization
     },
     getOptimization(attaches) {
-        return this._isOptimization || (attaches && attaches.isOptimization)
+        if (attaches && attaches.isOptimization !== undefined) {
+            return attaches.isOptimization
+        }
+        return this._isOptimization
     },
-    add(name, cancel, attaches) {
+    add(name, cancel, attaches, msg = '') {
         if (!this.getOptimization(attaches)) return
         if (this.list[name]) {
             this.list[name](msg)
@@ -27,7 +30,7 @@ const cancelQueue = {
             delete this.list[name]
         }
     },
-    cancelAll(msg = '', attaches) {
+    cancelAll(attaches, msg = '') {
         if (!this.getOptimization(attaches)) return
         Object.keys(this.list).forEach(key => {
             this.list[key](msg)

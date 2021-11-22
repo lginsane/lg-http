@@ -9,7 +9,10 @@ const Loading = {
         this._showLoading = showLoading
     },
     getShowLoading(attaches) {
-        return this._showLoading || (attaches && attaches.showLoading)
+        if (attaches && attaches.showLoading !== undefined) {
+            return attaches.showLoading
+        }
+        return this._showLoading
     },
     open(attaches) {
         if (!this.getShowLoading(attaches)) return
