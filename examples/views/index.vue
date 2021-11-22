@@ -5,9 +5,11 @@
 </template>
 <script>
 import { getCurrentInstance } from 'vue'
+import { useHttp } from '@@/hooks/useHttp'
 export default {
     setup() {
         const { proxy } = getCurrentInstance()
+        console.log(proxy.$http)
         const requestClick = () => {
             proxy.$http.post('user', {}, {
                 showLoading: false
@@ -19,6 +21,7 @@ export default {
                 console.log(error)
             })
         }
+        const { response, data, error, loading } = useHttp('/user', { method: 'post' }, proxy.$http.instance)
         return { requestClick }
     }
 }
