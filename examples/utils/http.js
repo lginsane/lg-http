@@ -1,7 +1,7 @@
 import Http from '@@/http/index'
 
 export const $http = new Http({
-    baseURL: 'http://192.168.0.150:3000/',
+    baseURL: 'http://localhost:3000',
     timeout: 20000,
     headers: {
         'Content-Type': 'application/json'
