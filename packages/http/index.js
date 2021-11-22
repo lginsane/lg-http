@@ -57,7 +57,7 @@ export default class Http {
 
     // repeated requests
     if (_attaches.isOptimization) {
-      _config.cancelToken = new CancelQueue.CancelToken(function executor(c) {
+      _config.cancelToken = new axios.CancelToken(function executor(c) {
         CancelQueue.add(path, c, attaches);
       });
     }

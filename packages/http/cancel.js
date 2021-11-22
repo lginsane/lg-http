@@ -1,10 +1,8 @@
 /* 处理取消重复请求 */
-import { CancelToken } from 'axios'
 
 const cancelQueue = {
     _isOptimization: false,
     list: {},
-    CancelToken: CancelToken,
     init({ isOptimization }) {
         this._isOptimization = isOptimization
     },
