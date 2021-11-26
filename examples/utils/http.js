@@ -1,6 +1,7 @@
 import Http from '@@/http/index'
+import { useHttp as useLgHttp } from '@@/hooks/useHttp'
 
-export const $http = new Http({
+const option = {
     baseURL: 'http://localhost:3000',
     timeout: 20000,
     headers: {
@@ -8,8 +9,12 @@ export const $http = new Http({
     },
     showLoading: true,
     loadingMethods: {
-        open: () => { console.log('打开loading') },
-        close: () => { console.log('关闭loading') }
+        open: () => {
+            console.log('打开loading')
+        },
+        close: () => {
+            console.log('关闭loading')
+        }
     },
     showToast: true,
     toastMethods: {
@@ -18,14 +23,24 @@ export const $http = new Http({
         }
     },
     defaultErrorToastMessage: '服务异常，请重新再试',
-    successRequestAssert: function(res) {
+    successRequestAssert: function (res) {
         return res.code === 200
     },
     isOptimization: true,
     requestAssert: {}
-})
+}
+export const $http = new Http(option)
 
-const setupHttp = (app) =>{ 
+export const useHttp = (url, config, attaches) => {
+    return useLgHttp(option, {
+        url,
+        data: config && config.data,
+        attaches,
+        config
+    })
+}
+
+const setupHttp = (app) => {
     app.config.globalProperties.$http = $http
 }
 export default setupHttp
