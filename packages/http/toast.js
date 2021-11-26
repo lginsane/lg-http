@@ -26,7 +26,7 @@ const Toast = {
         }
     },
     error(response, attaches) {
-        if (!this.getShowToast(attaches)) return 
+        if (!this.getShowToast(attaches)) return
         const errorMessage = response ? response.message || response.msg : ''
         let method
         if (isObject(this._methods)) {

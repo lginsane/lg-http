@@ -18,7 +18,7 @@ const cancelQueue = {
             this.list[name](msg)
             delete this.list[name]
         }
-        this.list[name] = msg => {
+        this.list[name] = (msg) => {
             cancel(msg)
         }
     },
@@ -30,7 +30,7 @@ const cancelQueue = {
     },
     cancelAll(attaches, msg = '') {
         if (!this.getOptimization(attaches)) return
-        Object.keys(this.list).forEach(key => {
+        Object.keys(this.list).forEach((key) => {
             this.list[key](msg)
         })
     },
