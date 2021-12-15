@@ -1,5 +1,6 @@
 import axios from 'axios'
 import CancelQueue from './cancel'
+import RefreshQueue from './refresh'
 import Loading from './loading'
 import Toast from './toast'
 import { defaultOptions } from '../types/index'
@@ -9,6 +10,7 @@ import { isFunction, isObject } from '../utils/is'
 export default class Http {
     constructor(option) {
         this.instance = null
+        this._params = null
         this.option = {
             ...defaultOptions,
             ...option
@@ -37,6 +39,7 @@ export default class Http {
         Loading.init(this.option)
         Toast.init(this.option)
         CancelQueue.init(this.option)
+        RefreshQueue.init(this.option)
     }
 
     request(method, url, data, attaches, axiosConfig) {
@@ -58,7 +61,10 @@ export default class Http {
                 CancelQueue.add(path, c, attaches)
             })
         }
-
+        // refresh add
+        if (_attaches.isRefresh) {
+            this._params = {method, url, data, attaches, axiosConfig}
+        }
         // open loading
         Loading.open(attaches)
 
@@ -71,14 +77,10 @@ export default class Http {
 
     commonThen(response, attaches) {
         const { config, data: result } = response
-        const { successRequestAssert, requestAssert } = this.option
-
-        const _requestAssert =
-            (attaches && attaches.requestAssert) || requestAssert
-        const _successRequestAssert =
-            (attaches && attaches.successRequestAssert) || successRequestAssert
-
-        // close loading
+        const { successRequestAssert, requestAssert, refreshRequestAssert, isRefresh } =  {
+            ...this.option,
+            ...attaches
+        }
         Loading.close(attaches)
 
         const finalResponse = {
@@ -91,18 +93,32 @@ export default class Http {
 
         // success
         if (
-            _successRequestAssert &&
-            typeof _successRequestAssert === 'function' &&
-            _successRequestAssert(result)
+            successRequestAssert &&
+            typeof successRequestAssert === 'function' &&
+            successRequestAssert(result)
         ) {
             Toast.success(attaches)
             return Promise.resolve(finalResponse)
         }
 
-        if (_requestAssert && isFunction(_requestAssert)) {
-            if (isFunction(_requestAssert)) {
-                _requestAssert(finalResponse)
-            }
+        // refresh token
+        if (refreshRequestAssert &&
+            typeof refreshRequestAssert === 'function' &&
+            refreshRequestAssert(result) && isRefresh) {
+                if (!RefreshQueue.freshing) {
+                    RefreshQueue.freshing = true
+                    RefreshQueue.refresh()
+                }
+                return Promise.resolve(new Promise((resolve, reject) => {
+                    RefreshQueue.add(() => {
+                        const { method, url, data, attaches, axiosConfig } = this._params
+                        resolve(this.request(method, url, data, attaches, axiosConfig))
+                    })
+                }))
+        }
+
+        if (requestAssert && isFunction(requestAssert)) {
+            requestAssert(finalResponse)
         }
 
         return Promise.reject(finalResponse)

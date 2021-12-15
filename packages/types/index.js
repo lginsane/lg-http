@@ -22,6 +22,16 @@ export const defaultOptions = {
     successRequestAssert: function (res) {
         return res.code === 200
     },
+    // token 失效状态
+    refreshRequestAssert: function (res) {
+        return res.code === 401
+    },
+    // 刷新token
+    refreshRequest: () => {
+        return Promise.resolve(true)
+    },
+    // 是否刷新token
+    isRefresh: false,
     // 是否优化重复请求
     isOptimization: false,
     // 根据code处理特殊情况
