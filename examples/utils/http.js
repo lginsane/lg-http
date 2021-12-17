@@ -1,6 +1,4 @@
-import Http from '../../dist/http/index'
-import { useHttp as useLgHttp } from '../../dist/hooks/useHttp'
-
+import Http, { useHttp as useLgHttp} from 'lg-http'
 const option = {
     baseURL: 'http://localhost:8900',
     headers: {
@@ -29,7 +27,11 @@ const option = {
     },
     isRefresh: true,
     isOptimization: true,
-    requestAssert: {}
+    codeCallback: {
+        400: (result) => {
+            console.log(result)
+        }
+    }
 }
 export const $http = new Http(option)
 
