@@ -1,5 +1,5 @@
-import Http from '@@/http/index'
-import { useHttp as useLgHttp } from '@@/hooks/useHttp'
+import Http from '../../dist/http/index'
+import { useHttp as useLgHttp } from '../../dist/hooks/useHttp'
 
 const option = {
     baseURL: 'http://localhost:8900',
