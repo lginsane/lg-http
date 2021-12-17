@@ -63,7 +63,7 @@ export default class Http {
         }
         // refresh add
         if (_attaches.isRefresh) {
-            this._params = {method, url, data, attaches, axiosConfig}
+            this._params = { method, url, data, attaches, axiosConfig }
         }
         // open loading
         Loading.open(attaches)
@@ -77,10 +77,9 @@ export default class Http {
 
     commonThen(response, attaches) {
         const { config, data: result } = response
-        const { successRequestAssert, requestAssert, refreshRequestAssert, isRefresh } =  {
-            ...this.option,
-            ...attaches
-        }
+        const successRequestAssert = this.option.successRequestAssert
+        const isRefresh = (attaches && attaches.isRefresh !== undefined) ? attaches.isRefresh : this.option.isRefresh
+
         Loading.close(attaches)
 
         const finalResponse = {
@@ -102,23 +101,28 @@ export default class Http {
         }
 
         // refresh token
-        if (refreshRequestAssert &&
-            typeof refreshRequestAssert === 'function' &&
-            refreshRequestAssert(result) && isRefresh) {
-                if (!RefreshQueue.freshing) {
-                    RefreshQueue.freshing = true
-                    RefreshQueue.refresh()
-                }
-                return Promise.resolve(new Promise((resolve, reject) => {
+        if (isRefresh) {
+            if (!RefreshQueue.freshing) {
+                RefreshQueue.freshing = true
+                RefreshQueue.refresh()
+            }
+            return Promise.resolve(
+                new Promise((resolve) => {
                     RefreshQueue.add(() => {
-                        const { method, url, data, attaches, axiosConfig } = this._params
-                        resolve(this.request(method, url, data, attaches, axiosConfig))
+                        const { method, url, data, attaches, axiosConfig } =
+                            this._params
+                        resolve(
+                            this.request(
+                                method,
+                                url,
+                                data,
+                                attaches,
+                                axiosConfig
+                            )
+                        )
                     })
-                }))
-        }
-
-        if (requestAssert && isFunction(requestAssert)) {
-            requestAssert(finalResponse)
+                })
+            )
         }
 
         return Promise.reject(finalResponse)
@@ -138,7 +142,15 @@ export default class Http {
                   success: false,
                   code: error.code
               }
-        Toast.error(finalError)
+        const { codeCallback } = {
+            ...this.option,
+            ...attaches
+        }
+        if (codeCallback && error.code && codeCallback[error.code]) {
+            codeCallback[error.code]
+        } else {
+            Toast.error(finalError, attaches)
+        }
         Loading.close(attaches)
         return Promise.reject(finalError)
     }

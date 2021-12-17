@@ -1,21 +1,27 @@
+import { isFunction } from "../utils/is"
+
 const RefreshQueue = {
     _isRefresh: false,
     freshing: false,
     list: [],
-    _refreshRequest: null,
-    init({ isRefresh, refreshRequest }) {
+    _refreshTokenRequest: null,
+    init({ isRefresh, refreshTokenRequest }) {
         this._isRefresh = isRefresh
-        this._refreshRequest = refreshRequest
+        this._refreshTokenRequest = refreshTokenRequest
     },
     add(cb) {
         this.list.push(cb)
     },
     refresh() {
-        this._refreshRequest().then(() => {
-            this.list.forEach(cb => cb())
-            this.list = []
-            this.freshing = false
-        })
+        if (this._refreshTokenRequest && isFunction(refreshTokenRequest)) {
+            this._refreshTokenRequest().then(() => {
+                this.list.forEach(cb => cb())
+                this.list = []
+                this.freshing = false
+            })
+        } else {
+            throw new Error('refreshTokenRequest格式错误')
+        }
     }
 }
 

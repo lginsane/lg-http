@@ -22,7 +22,17 @@ const Toast = {
         if (!this.getShowToast(attaches)) return
         const successMessage = attaches && attaches.successMessage
         if (successMessage) {
-            this._toast(successMessage, this._methods.success)
+            let method
+            if (isObject(this._methods)) {
+                if (isFunction(this._methods.success)) {
+                    method = this._methods.success
+                }
+            } else if (isFunction(this._methods)) {
+                method = this._methods
+            } else {
+                throw new Error('toastMethods格式错误')
+            }
+            this._toast(successMessage, method)
         }
     },
     error(response, attaches) {
@@ -35,6 +45,8 @@ const Toast = {
             }
         } else if (isFunction(this._methods)) {
             method = this._methods
+        } else {
+            throw new Error('toastMethods格式错误')
         }
         this._toast(errorMessage || this._defaultMessage, method)
     }
