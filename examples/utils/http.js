@@ -2,12 +2,10 @@ import Http from '@@/http/index'
 import { useHttp as useLgHttp } from '@@/hooks/useHttp'
 
 const option = {
-    baseURL: 'http://localhost:3000',
-    timeout: 20000,
+    baseURL: 'http://localhost:8900',
     headers: {
         'Content-Type': 'application/json'
     },
-    showLoading: true,
     loadingMethods: {
         open: () => {
             console.log('打开loading')
@@ -26,6 +24,10 @@ const option = {
     successRequestAssert: function (res) {
         return res.code === 200
     },
+    refreshRequest: () => {
+        return Promise.resolve(true)
+    },
+    isRefresh: true,
     isOptimization: true,
     requestAssert: {}
 }

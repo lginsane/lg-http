@@ -4,7 +4,7 @@
   "description": "基于axios二次封装",
   "main": "index.js",
   "scripts": {
-    "serve": "vue-cli-service serve",
+    "serve": "vue-cli-service serve & node ./examples/server.js",
     "build": "vue-cli-service build",
     "node": "node ./examples/server.js"
   },
