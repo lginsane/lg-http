@@ -1,6 +1,6 @@
 {
   "name": "lg-http",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "基于 axios 二次封装，内置加载, 提示, 取消重复请求, 刷新 token",
   "main": "dist/index.js",
   "scripts": {

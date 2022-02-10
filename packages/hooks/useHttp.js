@@ -1,5 +1,5 @@
 import { ref, shallowRef } from 'vue'
-import Http from '@@/http/index'
+import Http from '../http/index'
 
 export function useHttp(option, { url, data: requestData, attaches, config }) {
     const $http = new Http(option)
